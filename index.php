@@ -6,19 +6,23 @@ $password = "";
 $dbname = "kiemtra";
 
 // Create connection
+// Create connection
 $conn = new mysqli($servername, $username, $password, $dbname);
 // Check connection
 if ($conn->connect_error) {
-die("Connection failed: " . $conn->connect_error);
+  die("Connection failed: " . $conn->connect_error);
 }
 
-// Get all
-function getAllDonor()
-{
-    $result = $conn->query("SELECT * FROM `blood_donor`");
-    return mysql_fetch_array($result);
-}
+$donors = $conn->query("SELECT * FROM `blood_donor`");
 
+if (isset($_POST["action"]) === "delete") {
+    $status = $conn->query("DELETE FROM `blood_donor` WHERE bd_id = " . $_POST['bd_id']);
+    if ($status === TRUE) {
+        exit("OK");
+    }else{
+        exit("FAIL");
+    }
+}
 ?>
 
 <!doctype html>
@@ -61,11 +65,10 @@ function getAllDonor()
 <!--                    // BLOOD_DONOR: (bd_id, bd_name, bd_sex, bd_age, bd_bgroup, bd_reg_date, bd_phno)-->
 
                     <?php
-                    $doners = getAllDonor();
-                    foreach ($doners as $index => $doner):
+                      while($doner = $donors->fetch_assoc()) {
+
                         ?>
                         <tr>
-                            <th scope="row"><?=$index++?></th>
                             <td><?=$doner["bd_id"]?></td>
                             <td><?=$doner["bd_name"]?></td>
 
@@ -81,12 +84,13 @@ function getAllDonor()
 
                             <td>
                                 <button type="button" class="btn btn-xs btn-info">Edit</button>
-                                <button type="button" class="btn btn-xs btn-info">Delete</button>
-                            </td>
+                                <button type="button" class="btn btn-xs btn-info"
+                                        onclick="deleteDonor(<?= $doner['bd_id'] ?>)">Delete
+                                </button>                            </td>
                         </tr>
 
                     <?php
-                    endforeach;
+                      }
                     ?>
 
                     </tbody>
@@ -154,6 +158,19 @@ function getAllDonor()
 
     </div>
 </div>
-
+<script>
+    function deleteDonor(id) {
+        if (confirm('Are you sure ? ')) {
+            $.post('/kiemtra/index.php', {
+                action: 'delete',
+                id: id
+            }).then(res => {
+                console.log({ res });
+            }).catch(() => {
+                alert("Da xay ra loi khi xoa ");
+            })
+        }
+    }
+</script>
 </body>
 </html>
